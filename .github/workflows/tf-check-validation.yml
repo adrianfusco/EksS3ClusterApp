@@ -1,0 +1,40 @@
+name: Terraform checks and validation
+on:
+  pull_request:
+  push:
+
+jobs:
+  # We need to test al the terraform modules. For that we will collect the path of all the modules and save it
+  # use a matrix strategy in the next job
+  collect_terraform_module_dirs:
+    runs-on: ubuntu-latest
+    outputs:
+      dirs: ${{ steps.dirs.outputs.dirs }}
+    steps:
+      - uses: actions/checkout@v3
+      - id: dirs
+        # e.g: ["terraform/modules/module1", "terraform/modules/module2"]
+        run: echo "dirs=$(ls -d terraform/modules/* | jq --raw-input --slurp --compact-output 'split("\n")[:-1]')" >> $GITHUB_OUTPUT
+
+  tf-validation:
+    needs: collect_terraform_module_dirs
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dir: ${{ fromJson(needs.collect_terraform_module_dirs.outputs.dirs) }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.4.6
+
+      - name: Check tf files syntax
+        run: terraform fmt -check -recursive
+
+      - name: Terraform Init
+        id: init
+        run: cd ${{ matrix.dir }}; terraform init
+
+      - name: Terraform Validate
+        id: validate
+        run: cd ${{ matrix.dir }}; terraform validate -no-color

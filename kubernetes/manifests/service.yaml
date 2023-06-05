@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-s3-bucket
+  namespace: eks-ingress-balancer-s3-testing
+spec:
+  selector:
+    app: s3-bucket-listing
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>S3 File Explorer</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>S3 File Explorer. Bucket: {{ bucket_name }}</h1>
+    <form action="/download" method="post">
+        <table>
+            <tr>
+                <th>Name</th>
+                <th>Date</th>
+                <th>Size</th>
+                <th>Select</th>
+            </tr>
+            {% for obj in objects %}
+            <tr>
+                <td>{{ obj.name }}</td>
+                <td>{{ obj.date }}</td>
+                <td>{{ obj.size }}</td>
+                <td><input type="checkbox" name="file" value="{{ obj.name }}"></td>
+            </tr>
+            {% endfor %}
+        </table>
+        <button type="submit">Download Selected Files</button>
+    </form>
+</body>
+</html>
+<script>
+    $(document).ready(function() {
+        $('form').submit(function(e) {
+            var selectedFiles = $('input[name="file"]:checked').map(function() {
+                return this.value;
+            }).get();
+
+            if (selectedFiles.length === 0) {
+                e.preventDefault(); // Prevent form submission
+                alert('No files selected.');  // Show popup message
+            }
+        });
+    });
+</script>

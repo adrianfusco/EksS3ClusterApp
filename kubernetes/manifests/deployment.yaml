@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: s3-bucket-listing
+  namespace: eks-ingress-balancer-s3-testing
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: s3-bucket-listing
+  template:
+    metadata:
+      labels:
+        app: s3-bucket-listing
+    spec:
+      containers:
+        - name: s3-bucket-listing
+          image: adrianfusco/s3-bucket-listing:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 5000
+              protocol: TCP
+        - name: nginx
+          image: docker.io/nginx:mainline
+          ports:
+            - name: http
+              containerPort: 80
+          volumeMounts:
+            - name: nginx-config
+              mountPath: /etc/nginx/conf.d
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: nginx-config
